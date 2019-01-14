@@ -101,15 +101,28 @@ if __name__ == '__main__':
         scandate = args.infilename.split('/')[len(args.infilename.split('/')) - 2]
     else:    
         scandate = 'noscandate'
-        
+
+    dict_chamberNames = {}
+    unknownChamberName = "unknown"
+    for oh in ohArray:
+        if oh in chamber_config.keys():
+            chamberName = chamber_config[oh]
+        else:
+            chamberName = unknownChamberName
+            errorMsg = "Warning: OH{0} not found in chamber name dictionary. The chamber name associated with this OH will be set to '{1}'".format(
+                oh,
+                chamberName)
+            print(colormsg(errorMsg,logging.ERROR))
+        dict_chamberNames[oh] = chamberName    
+    
     from gempython.utils.wrappers import runCommand
     for oh in ohArray:
         if scandate == 'noscandate':
-            runCommand(["mkdir", "-p", "{0}/{1}".format(elogPath,chamber_config[oh])])
-            runCommand(["chmod", "g+rw", "{0}/{1}".format(elogPath,chamber_config[oh])])
+            runCommand(["mkdir", "-p", "{0}/{1}".format(elogPath,cName)])
+            runCommand(["chmod", "g+rw", "{0}/{1}".format(elogPath,cName)])
         else:
-            runCommand(["mkdir", "-p", "{0}/{1}/dacScans/{2}".format(dataPath,chamber_config[oh],scandate)])
-            runCommand(["chmod", "g+rw", "{0}/{1}/dacScans/{2}".format(dataPath,chamber_config[oh],scandate)])
+            runCommand(["mkdir", "-p", "{0}/{1}/dacScans/{2}".format(dataPath,dict_chamberNames[oh],scandate)])
+            runCommand(["chmod", "g+rw", "{0}/{1}/dacScans/{2}".format(dataPath,dict_chamberNames[oh],scandate)])
             
     # Determine which DAC was scanned and against which ADC
     adcName = ""
@@ -171,15 +184,18 @@ if __name__ == '__main__':
     #for each OH, check if calibration files were provided, if not search for the calFile in the $DATA_PATH, if it is not there, then skip that OH for the rest of the script
     for oh in ohArray:
         if oh not in calInfo.keys():
-            calAdcCalFile = "{0}/{1}/calFile_{2}_{1}.txt".format(dataPath,chamber_config[oh],adcName)
-            calAdcCalFileExists = os.path.isfile(calAdcCalFile)
+            #if a calFile for this oh is not passed through the --calFileList argument, check if a calFile exists in a standard location constructed from the $DATA_PATH and the chamber name
+            calAdcCalFileExists=False
+            if dict_chamberNames[oh] != unknownChamberName:
+                calAdcCalFile = "{0}/{1}/calFile_{2}_{1}.txt".format(dataPath,dict_chamberNames[oh],adcName)
+                calAdcCalFileExists = os.path.isfile(calAdcCalFile)
             if calAdcCalFileExists:
                 tuple_calInfo = parseCalFile(calAdcCalFile)
                 calInfo[oh] = {'slope' : tuple_calInfo[0], 'intercept' : tuple_calInfo[1]}
             else:    
                 print("Skipping OH{0}, detector {1}, missing {2} calibration file:\n\t{3}".format(
                     oh,
-                    chamber_config[oh],
+                    dict_chamberNames[oh],
                     adcName,
                     calAdcCalFile))
                 ohArray = np.delete(ohArray,(oh))
@@ -221,9 +237,9 @@ if __name__ == '__main__':
     outputFiles = {}         
     for oh in ohArray:
         if scandate == 'noscandate':
-            outputFiles[oh] = r.TFile(elogPath+"/"+chamber_config[oh]+"/"+args.outfilename,'recreate')
+            outputFiles[oh] = r.TFile(elogPath+"/"+dict_chamberNames[oh]+"/"+args.outfilename,'recreate')
         else:    
-            outputFiles[oh] = r.TFile(dataPath+"/"+chamber_config[oh]+"/dacScans/"+scandate+"/"+args.outfilename,'recreate')
+            outputFiles[oh] = r.TFile(dataPath+"/"+dict_chamberNames[oh]+"/dacScans/"+scandate+"/"+args.outfilename,'recreate')
 
     print("Looping over stored events in dacScanTree")
 
@@ -330,9 +346,9 @@ if __name__ == '__main__':
         dacName = np.asscalar(dacNameArray[idx])
         for oh in ohArray:
             if scandate == 'noscandate':
-                outputTxtFiles_dacVals[dacName][oh] = open("{0}/{1}/NominalValues-{2}.txt".format(elogPath,chamber_config[oh],dacName),'w')
+                outputTxtFiles_dacVals[dacName][oh] = open("{0}/{1}/NominalValues-{2}.txt".format(elogPath,dict_chamberNames[oh],dacName),'w')
             else:
-                outputTxtFiles_dacVals[dacName][oh] = open("{0}/{1}/dacScans/{2}/NominalValues-{3}.txt".format(dataPath,chamber_config[oh],scandate,dacName),'w')
+                outputTxtFiles_dacVals[dacName][oh] = open("{0}/{1}/dacScans/{2}/NominalValues-{3}.txt".format(dataPath,dict_chamberNames[oh],scandate,dacName),'w')
 
     for oh in ohArray:
         # Per VFAT Poosition
@@ -364,9 +380,9 @@ if __name__ == '__main__':
             # Store summary grid canvas and print images
             canv_Summary = make3x8Canvas("canv_Summary_{0}".format(dacName),dict_DACvsADC_Graphs[dacName][oh],'APE1',dict_DACvsADC_Funcs[dacName][oh],'')
             if scandate == 'noscandate':
-                canv_Summary.SaveAs("{0}/{1}/Summary_{1}_DACScan_{2}.png".format(elogPath,chamber_config[oh],dacName))
+                canv_Summary.SaveAs("{0}/{1}/Summary_{1}_DACScan_{2}.png".format(elogPath,dict_chamberNames[oh],dacName))
             else:
-                canv_Summary.SaveAs("{0}/{1}/dacScans/{2}/Summary{1}_DACScan_{2}.png".format(dataPath,chamber_config[oh],scandate,dacName))
+                canv_Summary.SaveAs("{0}/{1}/dacScans/{2}/Summary{1}_DACScan_{2}.png".format(dataPath,dict_chamberNames[oh],scandate,dacName))
 
     # Print Summary?
     if args.printSum:
