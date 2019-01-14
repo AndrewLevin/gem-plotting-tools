@@ -118,8 +118,8 @@ if __name__ == '__main__':
     from gempython.utils.wrappers import runCommand
     for oh in ohArray:
         if scandate == 'noscandate':
-            runCommand(["mkdir", "-p", "{0}/{1}".format(elogPath,cName)])
-            runCommand(["chmod", "g+rw", "{0}/{1}".format(elogPath,cName)])
+            runCommand(["mkdir", "-p", "{0}/{1}".format(elogPath,dict_chamberNames[oh])])
+            runCommand(["chmod", "g+rw", "{0}/{1}".format(elogPath,dict_chamberNames[oh])])
         else:
             runCommand(["mkdir", "-p", "{0}/{1}/dacScans/{2}".format(dataPath,dict_chamberNames[oh],scandate)])
             runCommand(["chmod", "g+rw", "{0}/{1}/dacScans/{2}".format(dataPath,dict_chamberNames[oh],scandate)])
