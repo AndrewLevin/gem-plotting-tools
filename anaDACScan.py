@@ -189,15 +189,18 @@ if __name__ == '__main__':
             if dict_chamberNames[oh] != unknownChamberName:
                 calAdcCalFile = "{0}/{1}/calFile_{2}_{1}.txt".format(dataPath,dict_chamberNames[oh],adcName)
                 calAdcCalFileExists = os.path.isfile(calAdcCalFile)
-            if calAdcCalFileExists:
-                tuple_calInfo = parseCalFile(calAdcCalFile)
-                calInfo[oh] = {'slope' : tuple_calInfo[0], 'intercept' : tuple_calInfo[1]}
-            else:    
-                print("Skipping OH{0}, detector {1}, missing {2} calibration file:\n\t{3}".format(
-                    oh,
-                    dict_chamberNames[oh],
-                    adcName,
-                    calAdcCalFile))
+                if calAdcCalFileExists:
+                    tuple_calInfo = parseCalFile(calAdcCalFile)
+                    calInfo[oh] = {'slope' : tuple_calInfo[0], 'intercept' : tuple_calInfo[1]}
+                else:    
+                    print("Skipping OH{0}, detector {1}, missing {2} calibration file:\n\t{3}".format(
+                        oh,
+                        dict_chamberNames[oh],
+                        adcName,
+                        calAdcCalFile))
+                    ohArray = np.delete(ohArray,(oh))
+            else:
+                print("Skipping OH%i, no calibration file"%oh)
                 ohArray = np.delete(ohArray,(oh))
 
     if len(ohArray) == 0:
