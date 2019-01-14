@@ -104,15 +104,17 @@ if __name__ == '__main__':
 
     dict_chamberNames = {}
     unknownChamberName = "unknown"
+    from gempython.utils.gemlogger import colormsg
+    import logging
     for oh in ohArray:
         if oh in chamber_config.keys():
             chamberName = chamber_config[oh]
         else:
-            chamberName = unknownChamberName
-            errorMsg = "Warning: OH{0} not found in chamber name dictionary. The chamber name associated with this OH will be set to '{1}'".format(
+            errorMsg = "Warning: OH{0} not found in chamber name dictionary. The chamber name associated with this OH will be set to '{1}'.".format(
                 oh,
-                chamberName)
+                unknownChamberName)
             print(colormsg(errorMsg,logging.ERROR))
+            chamberName = unknownChamberName
         dict_chamberNames[oh] = chamberName    
     
     from gempython.utils.wrappers import runCommand
@@ -130,8 +132,6 @@ if __name__ == '__main__':
         adcName = str(event.nameY.data())
         break # all entries will be the same
 
-    from gempython.utils.gemlogger import colormsg
-    import logging
     if adcName not in ['ADC0', 'ADC1']:
         print(colormsg("Error: unexpected value of adcName: '%s'"%adcName,logging.ERROR))
         exit(os.EX_DATAERR)
