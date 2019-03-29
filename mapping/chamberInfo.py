@@ -14,7 +14,7 @@ from gempython.utils.gemlogger import printYellow
 try:
     from system_specific_constants import chamber_config
 except ImportError as e:
-    printYellow(e,"Using gempython_gemplotting package default for chamber_config dictionary")
+    printYellow("Using gempython_gemplotting package default for chamber_config dictionary")
     #: Available chambers
     """
     Keys should be a tuple of (shelf,slot,link)
@@ -36,7 +36,7 @@ except ImportError as e:
 try:
     from system_specific_constants import GEBtype
 except ImportError as e:
-    printYellow(e,"Using gempython_gemplotting package default for GEBtype dictionary")
+    printYellow("Using gempython_gemplotting package default for GEBtype dictionary")
     """
     Keys should be a tuple of (shelf,slot,link)
     """
@@ -78,7 +78,7 @@ for ieta, vfatRow in chamber_iEta2VFATPos.iteritems():
 try:
     from system_specific_constants import chamber_vfatDACSettings
 except ImportError as e:
-    printYellow(e,"Using gempython_gemplotting package default for chamber_vfatDACSettings dictionary")
+    printYellow("Using gempython_gemplotting package default for chamber_vfatDACSettings dictionary")
     """
     Keys should be a tuple of (shelf,slot,link)
     """
