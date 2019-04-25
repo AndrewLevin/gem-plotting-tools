@@ -875,6 +875,32 @@ def parseCalFile(filename=None):
 
     return (calDAC2Q_m, calDAC2Q_b)
 
+def parseArmDacCalFile(filename):
+    import numpy as np
+    import root_numpy as rp #note need root_numpy-4.7.2 (may need to run 'pip install root_numpy --upgrade')
+    import ROOT as r
+
+    # Set the CAL DAC to fC conversion
+    coef4 = np.zeros(24)
+    coef3 = np.zeros(24)
+    coef2 = np.zeros(24)
+    coef1 = np.zeros(24)
+    coef0 = np.zeros(24)
+    list_bNames = ["vfatN","coef4","coef3","coef2","coef1","coef0"]
+    calTree = r.TTree('calTree','Tree holding VFAT Calibration Info')
+    calTree.ReadFile(filename)
+    array_CalData = rp.tree2array(tree=calTree, branches=list_bNames)
+    
+    for dataPt in array_CalData:
+        coef4[dataPt['vfatN']] = dataPt['coef4']
+        coef3[dataPt['vfatN']] = dataPt['coef3']
+        coef2[dataPt['vfatN']] = dataPt['coef2']
+        coef1[dataPt['vfatN']] = dataPt['coef1']
+        coef0[dataPt['vfatN']] = dataPt['coef0']
+        pass
+    
+    return (c4, c3, c3, c1, c0)
+
 def parseListOfScanDatesFile(filename, alphaLabels=False, delim='\t'):
     """
     Parses a filename which describes a list of scandates.  Two formats of the filename
