@@ -899,7 +899,7 @@ def parseArmDacCalFile(filename):
         coef0[dataPt['vfatN']] = dataPt['coef0']
         pass
     
-    return (c4, c3, c3, c1, c0)
+    return (coef4, coef3, coef2, coef1, coef0)
 
 def parseListOfScanDatesFile(filename, alphaLabels=False, delim='\t'):
     """
