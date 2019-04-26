@@ -14,7 +14,7 @@ Documentation
 -------------
 """
 
-from gempython.utils.gemlogger import printYellow
+from gempython.utils.gemlogger import printYellow, printRed
 
 def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
     """
@@ -878,8 +878,8 @@ def parseCalFile(filename=None):
 def parseArmDacCalFile(filename):
     """
     Reads a text file and supplies the coefficients of the 
-    quartic polynomial used for the conversion between scurveMean 
-    (in fC) and CFG_THR_ARM_DAC.
+    quartic polynomial used for used for converting between 
+    DAC units to charge units (in fC) for CFG_THR_ARM_DAC
 
     Returns a tuple of numpy arrays where index i of the tuple
     corresponds to the coefficient of x^(4-i).  The returned 
