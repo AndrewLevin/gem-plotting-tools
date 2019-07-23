@@ -690,12 +690,15 @@ def calibrateThrDAC(args):
             histENC = r.TH1F("scurveSigma_vfat%i"%vfat,"VFAT %i;S-Curve Sigma #left(fC#right);N"%vfat,
                                  40, thisVFAT_ENCMean - 5. * thisVFAT_ENCStd, thisVFAT_ENCMean + 5. * thisVFAT_ENCStd )
                 
-            #fill histograms with the scurve means and the scurve sigmas that pass the quality cuts    
-            for idy in range(0,len(scurveFitDataThisVfat)):
-                scurveMean = scurveFitDataThisVfat[idy]['threshold']
-                scurveSigma = scurveFitDataThisVfat[idy]['noise']
-                histThresh.Fill(scurveMean)
-                histENC.Fill(scurveSigma)
+            #fill histograms with the scurve means and the scurve sigmas that pass the quality cuts
+            #leave TH1Fs and TGraphs empty for ARM DAC points with too few unmasked channels
+            from gempython.gemplotting.utils.anaInfo import numOfGoodChannelsMin
+            if len(scurveFitDataThisVfat) >= numOfGoodChannelsMin:
+                for idy in range(0,len(scurveFitDataThisVfat)):
+                    scurveMean = scurveFitDataThisVfat[idy]['threshold']
+                    scurveSigma = scurveFitDataThisVfat[idy]['noise']
+                    histThresh.Fill(scurveMean)
+                    histENC.Fill(scurveSigma)
 
             ###################
             ### Scurve Mean ###
