@@ -112,7 +112,6 @@ if __name__ == '__main__':
     from gempython.gemplotting.utils.threshAlgos import calibrateThrDAC
     from gempython.utils.gemlogger import printGreen, printRed
     from gempython.utils.wrappers import runCommand
-    from gempython.gemplotting.utils.namespace import Namespace
     import os, sys, traceback
     try:
         args.outputDir = outputDir
