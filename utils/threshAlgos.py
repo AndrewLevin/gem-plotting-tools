@@ -452,7 +452,7 @@ def calibrateThrDACStar(inputs):
     """
     return calibrateThrDAC(*inputs)
 
-from anaInfo import maxEffPedPercentDefault, highNoiseCutDefault, deadChanCutLowDefault, deadChanCutHighDefault
+from anaInfo import maxEffPedPercentDefault, highNoiseCutDefault, deadChanCutLowDefault, deadChanCutHighDefault, numOfGoodChannelsMinDefault 
 
 def calibrateThrDAC(args):
     """
@@ -487,6 +487,9 @@ def calibrateThrDAC(args):
     if not hasattr(args,"listofVFATs"):
         args.listOfVFATs = None
 
+    if not hasattr(args,"numOfGoodChannelsMin"):
+        args.numOfGoodChannelsMin=numOfGoodChannelsMinDefault 
+        
     if not hasattr(args,"maxEffPedPercent"):
         args.maxEffPedPercent=maxEffPedPercentDefault
 
@@ -695,8 +698,8 @@ def calibrateThrDAC(args):
                 
             #fill histograms with the scurve means and the scurve sigmas that pass the quality cuts
             #leave TH1Fs and TGraphs empty for ARM DAC points with too few unmasked channels
-            from gempython.gemplotting.utils.anaInfo import numOfGoodChannelsMin
-            if len(scurveFitDataThisVfat) >= numOfGoodChannelsMin:
+            from gempython.gemplotting.utils.anaInfo import args.numOfGoodChannelsMin
+            if len(scurveFitDataThisVfat) >= args.numOfGoodChannelsMin:
                 for idy in range(0,len(scurveFitDataThisVfat)):
                     scurveMean = scurveFitDataThisVfat[idy]['threshold']
                     scurveSigma = scurveFitDataThisVfat[idy]['noise']
