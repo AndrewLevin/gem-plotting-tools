@@ -85,7 +85,7 @@ if __name__ == '__main__':
     import argparse
     from gempython.gemplotting.utils.anaoptions import parser_scurveChanMasks
     parser = argparse.ArgumentParser(description='Arguments to supply to calibrateThrDac.py',parents=[parser_scurveChanMasks])
-    parser.add_argument("filename", type=str, 
+    parser.add_argument("filename", type=str, dest="inputFile",
             help="Tab delimited file specifying the input list of scandates, in three column format, specifying chamberName, scandate, and either CFG_THR_ARM_DAC or CFG_THR_ZCC_DAC value")
 
     parser.add_argument("-d","--debug", action="store_true", help="Prints additional debugging information")
@@ -116,23 +116,9 @@ if __name__ == '__main__':
     from gempython.gemplotting.utils.namespace import Namespace
     import os, sys, traceback
     try:
-
-        args = Namespace(
-            inputFile=args.filename,
-            fitRange=args.fitRange,
-            listOfVFATs=args.listOfVFATs,
-            maxEffPedPercent=args.maxEffPedPercent,
-            highNoiseCut=args.highNoiseCut,
-            deadChanCutLow=args.deadChanCutLow,
-            deadChanCutHigh=args.deadChanCutHigh,
-            noLeg=args.noLeg,
-            outputDir=outputDir,
-            savePlots=args.savePlots,
-            debug=args.debug
-        )
+        args.outputDir = outputDir
 
         retCode = calibrateThrDAC(args)
-
     except IOError as err:
         printRed("IOError: {0}".format(err.message))
         printRed("Analysis failed with error code {0}".format(retCode))
