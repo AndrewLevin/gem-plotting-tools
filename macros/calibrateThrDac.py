@@ -93,7 +93,7 @@ if __name__ == '__main__':
             help="Two comma separated integers which specify the range of 'CFG_THR_*_DAC' to use in fitting when deriving the calibration curve")
     parser.add_argument("--listOfVFATs", type=str, default=None,
             help="If provided the VFATID will be taken from this file rather than scurveTree.  Tab delimited file, first line is a column header, subsequent lines specify respectively VFAT position and VFAT serial number.  Lines beginning with the '#' character will be skipped")
-    parser.add_argument("--numOfGoodChannelsMin", type=int, default=10, help="Minimum number of channels that must be good (unmasked) for an armDacVal point to be use in the calibration procedure.")
+    parser.add_argument("--numOfGoodChansMin", type=int, default=10, help="Minimum number of channels that must be good (unmasked) for an armDacVal point to be use in the calibration procedure.")
     parser.add_argument("--noLeg", action="store_true", help="Do not draw a TLegend on the output plots")
     parser.add_argument("--savePlots", action="store_true", help="Make *.png file for all plots that will be saved in the output TFile")
     args = parser.parse_args()
