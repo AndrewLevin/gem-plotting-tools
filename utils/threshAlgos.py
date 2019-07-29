@@ -476,7 +476,8 @@ def calibrateThrDAC(args):
 
     if not hasattr(args,"inputFile"):
         print("No inputFile provided to calibrateThrDac")
-        sys.exit(1)
+        import sys, os
+        sys.exit(os.EX_NOINPUT)
 
     if not hasattr(args,"fitRange"):
         args.fitRange = [0, 255]
