@@ -113,9 +113,8 @@ if __name__ == '__main__':
     from gempython.utils.gemlogger import printGreen, printRed
     from gempython.utils.wrappers import runCommand
     import os, sys, traceback
+    args.outputDir = outputDir
     try:
-        args.outputDir = outputDir
-
         retCode = calibrateThrDAC(args)
     except IOError as err:
         printRed("IOError: {0}".format(err.message))
