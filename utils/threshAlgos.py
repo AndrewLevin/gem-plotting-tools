@@ -452,26 +452,34 @@ def calibrateThrDACStar(inputs):
     """
     return calibrateThrDAC(*inputs)
 
-from anaInfo import maxEffPedPercentDefault, highNoiseCutDefault, deadChanCutLowDefault, deadChanCutHighDefault, numOfGoodChannelsMinDefault 
+from anaInfo import maxEffPedPercentDefault, highNoiseCutDefault, deadChanCutLowDefault, deadChanCutHighDefault, numOfGoodChansMinDefault 
 
 def calibrateThrDAC(args):
     """
     Calibrates CFG_THR_X_DAC, for X = {ARM,ZCC}, in terms of charge units from a series of scurve measurements.
 
     Returns either 0 or an error code, see: https://docs.python.org/2/library/os.html#process-management
-    
-        inputFile     - Filename of a file in the "Three Column Format," see parseListOfScanDatesFile from
-                        gempython.gemplotting.utils.anautilities, where each entry after the column header
-                        is an analyzed scurve file taken at a different CFG_THR_X_DAC for a (shelf,slot,link).
-        fitRange      - Two comma separated integers which specify the range of 'CFG_THR_*_DAC' to use in 
-                        fitting when deriving the calibration curve.
-        listOfVFATs   - If provided vfatID will be taken from this file rather than scurveFitTree in input
-                        analyzed scurve files defined in inputFile.  This is a tab delimited file, first line
-                        is a column header, subsequent lines specifying respectively VFAT position and chipID.
-                        Lines beginning with the "#" character will be skipped.
-        noLeg         - Do not draw a TLegend on the output plots.
-        outputDir     - String specifying location of output files, if None then $ELOG_PATH will be used
-        savePlots     - Make a '*.png' file for all plots that will be saved in the output TFile
+
+    The single argument "args" is intended to be a namespace which has attributes among those listed below.  
+
+        inputFile         - Filename of a file in the "Three Column Format," see parseListOfScanDatesFile from
+                                 gempython.gemplotting.utils.anautilities, where each entry after the column header
+                                 is an analyzed scurve file taken at a different CFG_THR_X_DAC for a (shelf,slot,link).
+        fitRange          - Two comma separated integers which specify the range of 'CFG_THR_*_DAC' to use in 
+                                 fitting when deriving the calibration curve.
+        listOfVFATs       - If provided vfatID will be taken from this file rather than scurveFitTree in input
+                                 analyzed scurve files defined in inputFile.  This is a tab delimited file, first line
+                                 is a column header, subsequent lines specifying respectively VFAT position and chipID.
+                                 Lines beginning with the "#" character will be skipped.
+        noLeg             - Do not draw a TLegend on the output plots.
+        outputDir         - String specifying location of output files, if None then $ELOG_PATH will be used
+        savePlots         - Make a '*.png' file for all plots that will be saved in the output TFile
+        numOfGoodChansMin - If the number of good channels associated with an armDacVal point is less than numOfGoodChansMin, 
+                                then that armDacVal point is not used. This is criterion is applied separately for each VFAT.
+        maxEffPedPercent  - If channel effPed > maxEffPedPercent, then the channel is marked as bad. 
+        highNoiseCut      - If scurve_sigma > highNoiseCut, then the channel is marked as bad.
+        deadChanCutLow    - If deadChanCutLow < scurve_sigma < deadChanCutHigh, then the channel is marked as bad.
+        deadChanHighLow   - If deadChanCutLow < scurve_sigma < deadChanCutHigh, then the channel is marked as bad.
     """
 
     if not hasattr(args,"inputFile"):
@@ -487,8 +495,8 @@ def calibrateThrDAC(args):
     if not hasattr(args,"listofVFATs"):
         args.listOfVFATs = None
 
-    if not hasattr(args,"numOfGoodChannelsMin"):
-        args.numOfGoodChannelsMin=numOfGoodChannelsMinDefault 
+    if not hasattr(args,"numOfGoodChansMin"):
+        args.numOfGoodChansMin=numOfGoodChansMinDefault 
         
     if not hasattr(args,"maxEffPedPercent"):
         args.maxEffPedPercent=maxEffPedPercentDefault
@@ -698,8 +706,8 @@ def calibrateThrDAC(args):
                 
             #fill histograms with the scurve means and the scurve sigmas that pass the quality cuts
             #leave TH1Fs and TGraphs empty for ARM DAC points with too few unmasked channels
-            from gempython.gemplotting.utils.anaInfo import args.numOfGoodChannelsMin
-            if len(scurveFitDataThisVfat) >= args.numOfGoodChannelsMin:
+            from gempython.gemplotting.utils.anaInfo import args.numOfGoodChansMin
+            if len(scurveFitDataThisVfat) >= args.numOfGoodChansMin:
                 for idy in range(0,len(scurveFitDataThisVfat)):
                     scurveMean = scurveFitDataThisVfat[idy]['threshold']
                     scurveSigma = scurveFitDataThisVfat[idy]['noise']
