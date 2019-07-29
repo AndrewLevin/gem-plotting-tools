@@ -477,9 +477,11 @@ def calibrateThrDAC(args):
     if not hasattr(args,"inputFile"):
         print("No inputFile provided to calibrateThrDac")
         sys.exit(1)
-        
+
     if not hasattr(args,"fitRange"):
-        args.fitRange = "0,255"
+        args.fitRange = [0, 255]
+    else:
+        args.fitRange = [int(item) for item in args.fitRange.split(",")]        
 
     if not hasattr(args,"listofVFATs"):
         args.listOfVFATs = None
@@ -858,7 +860,6 @@ def calibrateThrDAC(args):
     if args.debug:
         print("| vfatN | coef4 | coef3 | coef2 | coef1 | coef0 | noise | noise_err |")
         print("| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :-------: |")
-    args.fitRange = [int(item) for item in args.fitRange.split(",")]
     for vfat in range(-1,24):
         if vfat == -1:
             suffix = "All"
