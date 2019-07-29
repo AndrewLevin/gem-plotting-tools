@@ -85,9 +85,7 @@ if __name__ == '__main__':
     import argparse
     from gempython.gemplotting.utils.anaoptions import parser_scurveChanMasks
     parser = argparse.ArgumentParser(description='Arguments to supply to calibrateThrDac.py',parents=[parser_scurveChanMasks])
-    parser.add_argument("filename", type=str, dest="inputFile",
-            help="Tab delimited file specifying the input list of scandates, in three column format, specifying chamberName, scandate, and either CFG_THR_ARM_DAC or CFG_THR_ZCC_DAC value")
-
+    parser.add_argument("inputFile", type=str, help="Tab delimited file specifying the input list of scandates, in three column format, specifying chamberName, scandate, and either CFG_THR_ARM_DAC or CFG_THR_ZCC_DAC value")
     parser.add_argument("-d","--debug", action="store_true", help="Prints additional debugging information")
     parser.add_argument("--fitRange", type=str, default="0,255", 
             help="Two comma separated integers which specify the range of 'CFG_THR_*_DAC' to use in fitting when deriving the calibration curve")
@@ -104,8 +102,8 @@ if __name__ == '__main__':
     envCheck('ELOG_PATH')
 
     # Determine outputDir
-    if "/" in args.filename:
-        outputDir = args.filename[0:args.filename.rfind("/")+1]
+    if "/" in args.inputFile:
+        outputDir = args.inputFile[0:args.inputFile.rfind("/")+1]
     else:
         from gempython.gemplotting.utils.anautilities import getElogPath
         outputDir = getElogPath()
