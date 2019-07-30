@@ -580,6 +580,8 @@ def calibrateThrDAC(args):
     dict_funcScurveMean = ndict()
     dict_funcScurveSigma = ndict()
 
+    dict_nBadChannels = ndict() # Stores the number of bad channels for a VFAT
+    
     dict_mGraphScurveMean = {} # Key is VFAT position, stores the dict_gScurveMean[*][vfat] for a given vfat
     dict_mGraphScurveSigma = {}
     dict_ScurveMeanVsThrDac = {} # Key is VFAT position
@@ -617,15 +619,29 @@ def calibrateThrDAC(args):
         list_bNames = ['noise', 'threshold', 'vfatN', 'vthr', 'ped_eff']
         scurveFitData = rp.tree2array(tree=scanFile.scurveFitTree, branches=list_bNames)
 
-        #remove channels that are masked and those for which the noise or the threshold equal the initial value 
-        scurveFitMask = np.logical_or(scurveFitData['noise'] < args.deadChanCutLow,scurveFitData['noise'] > args.deadChanCutHigh)
-        scurveFitMask = np.logical_and(scurveFitMask,scurveFitData['noise'] < args.highNoiseCut)
-        scurveFitMask = np.logical_and(scurveFitMask,scurveFitData['ped_eff'] < args.maxEffPedPercent)
-        scurveFitData = scurveFitData[scurveFitMask]
-        #following what is done in the scurve analysis script, we remove scurve fits in which either of these parameters are 0
-        scurveFitData = scurveFitData[scurveFitData['noise'] != 0]
-        scurveFitData = scurveFitData[scurveFitData['threshold'] != 0]
+        #remove channels that are masked and those for which the noise or the threshold equal the initial value
+        #also, following what is done in the scurve analysis script, we remove scurve fits in which either of these parameters are 0
+        scurveFitMask1 = np.logical_or(scurveFitData['noise'] < args.deadChanCutLow,scurveFitData['noise'] > args.deadChanCutHigh)
+        scurveFitMask2 = scurveFitData['noise'] < args.highNoiseCut
+        scurveFitMask3 = scurveFitData['ped_eff'] < args.maxEffPedPercent
+        scurveFitMask4 = np.logical_and(scurveFitData['noise'] != 0,scurveFitData['threshold'] != 0)
 
+        for vfat in range(-1,24):
+            if vfat == -1:
+                dict_nBadChannels[vfat][infoTuple[2]]["DeadChannel"] = len(scurveFitData[scurveFitMask1 == False])
+                dict_nBadChannels[vfat][infoTuple[2]]["HighNoise"] = len(scurveFitData[scurveFitMask2 == False])
+                dict_nBadChannels[vfat][infoTuple[2]]["HighEffPed"] = len(scurveFitData[scurveFitMask3 == False])
+                dict_nBadChannels[vfat][infoTuple[2]]["FitAtInitVal"] = len(scurveFitData[scurveFitMask4 == False])
+            else:
+                scurveFitMaskVfat = scurveFitData["vfatN"] == vfat
+                dict_nBadChannels[vfat][infoTuple[2]]["DeadChannel"] = 128-len(scurveFitData[np.logical_and(scurveFitMask1,scurveFitMaskVfat)])
+                dict_nBadChannels[vfat][infoTuple[2]]["HighNoise"] = 128-len(scurveFitData[np.logical_and(scurveFitMask2,scurveFitMaskVfat)])
+                dict_nBadChannels[vfat][infoTuple[2]]["HighEffPed"] = 128-len(scurveFitData[np.logical_and(scurveFitMask3,scurveFitMaskVfat)])
+                dict_nBadChannels[vfat][infoTuple[2]]["FitAtInitVal"] = 128-len(scurveFitData[np.logical_and(scurveFitMask4,scurveFitMaskVfat)])
+
+        scurveFitMask = np.logical_and(np.logical_and(np.logical_and(scurveFitMask1,scurveFitMask2),scurveFitMask3),scurveFitMask4)
+        scurveFitData = scurveFitData[scurveFitMask] 
+        
         ###################
         # Get and fit individual distributions
         ###################
@@ -703,7 +719,6 @@ def calibrateThrDAC(args):
                                 40, thisVFAT_ThreshMean - 5. * thisVFAT_ThreshStd, thisVFAT_ThreshMean + 5. * thisVFAT_ThreshStd )
             histENC = r.TH1F("scurveSigma_vfat%i"%vfat,"VFAT %i;S-Curve Sigma #left(fC#right);N"%vfat,
                                  40, thisVFAT_ENCMean - 5. * thisVFAT_ENCStd, thisVFAT_ENCMean + 5. * thisVFAT_ENCStd )
-
 
             #discard armDacVal points with too few good channels
             if len(scurveFitDataThisVfat) < args.numOfGoodChansMin:
@@ -1053,6 +1068,21 @@ def calibrateThrDAC(args):
                 func_ScurveSigmaVsThrDac.GetParameter(0),
                 func_ScurveSigmaVsThrDac.GetParError(1))
                 )
+
+    print "| vfatN | armDacVal | Dead Chan | High Noise | High Eff Ped | Fit At Init Val |"
+    print "| :---: | :-------: | :-------: | :--------: | :----------: | :-------------: |"        
+
+    for vfat in range(-1,24):
+        for infoTuple in listChamberAndScanDate:
+            if vfat not in dict_nBadChannels or infoTuple[2] not in dict_nBadChannels[vfat]:
+                continue
+            print '| %i | %i | %i | %i | %i | %i |'%(
+                vfat,
+                infoTuple[2],
+                dict_nBadChannels[vfat][infoTuple[2]]["DeadChannel"],
+                dict_nBadChannels[vfat][infoTuple[2]]["HighNoise"],
+                dict_nBadChannels[vfat][infoTuple[2]]["HighEffPed"],
+                dict_nBadChannels[vfat][infoTuple[2]]["FitAtInitVal"])
 
     if args.savePlots:
         for vfat in range(-1,24):
