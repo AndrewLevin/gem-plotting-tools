@@ -653,7 +653,7 @@ def calibrateThrDAC(args):
                 # Scurve Mean
                 dict_mGraphScurveMean[vfat] = r.TMultiGraph("mGraph_ScurveMeanByThrDac_{0}".format(suffix),suffix)
 
-                dict_ScurveMeanVsThrDac[vfat] = r.TGraphErrors(len(listChamberAndScanDate))
+                dict_ScurveMeanVsThrDac[vfat] = r.TGraphErrors()
                 dict_ScurveMeanVsThrDac[vfat].SetTitle(suffix)
                 dict_ScurveMeanVsThrDac[vfat].SetName("gScurveMean_vs_{0}_{1}".format(thrDacName,suffix))
                 dict_ScurveMeanVsThrDac[vfat].SetMarkerStyle(23)
@@ -669,7 +669,7 @@ def calibrateThrDAC(args):
                 # Scurve Sigma
                 dict_mGraphScurveSigma[vfat] = r.TMultiGraph("mGraph_ScurveSigmaByThrDac_{0}".format(suffix),suffix)
 
-                dict_ScurveSigmaVsThrDac[vfat] = r.TGraphErrors(len(listChamberAndScanDate))
+                dict_ScurveSigmaVsThrDac[vfat] = r.TGraphErrors()
                 dict_ScurveSigmaVsThrDac[vfat].SetTitle(suffix)
                 dict_ScurveSigmaVsThrDac[vfat].SetName("gScurveSigma_vs_{0}_{1}".format(thrDacName,suffix))
                 dict_ScurveSigmaVsThrDac[vfat].SetMarkerStyle(23)
@@ -703,15 +703,18 @@ def calibrateThrDAC(args):
                                 40, thisVFAT_ThreshMean - 5. * thisVFAT_ThreshStd, thisVFAT_ThreshMean + 5. * thisVFAT_ThreshStd )
             histENC = r.TH1F("scurveSigma_vfat%i"%vfat,"VFAT %i;S-Curve Sigma #left(fC#right);N"%vfat,
                                  40, thisVFAT_ENCMean - 5. * thisVFAT_ENCStd, thisVFAT_ENCMean + 5. * thisVFAT_ENCStd )
-                
-            #fill histograms with the scurve means and the scurve sigmas that pass the quality cuts
-            #leave TH1Fs and TGraphs empty for ARM DAC points with too few unmasked channels
-            if len(scurveFitDataThisVfat) >= args.numOfGoodChansMin:
-                for idy in range(0,len(scurveFitDataThisVfat)):
-                    scurveMean = scurveFitDataThisVfat[idy]['threshold']
-                    scurveSigma = scurveFitDataThisVfat[idy]['noise']
-                    histThresh.Fill(scurveMean)
-                    histENC.Fill(scurveSigma)
+
+
+            #discard armDacVal points with too few good channels
+            if len(scurveFitDataThisVfat) < args.numOfGoodChansMin:
+                continue
+
+            #fill histograms with the scurve means and the scurve sigmas that pass the quality cuts            
+            for idy in range(0,len(scurveFitDataThisVfat)):
+                scurveMean = scurveFitDataThisVfat[idy]['threshold']
+                scurveSigma = scurveFitDataThisVfat[idy]['noise']
+                histThresh.Fill(scurveMean)
+                histENC.Fill(scurveSigma)
 
             ###################
             ### Scurve Mean ###
@@ -752,11 +755,11 @@ def calibrateThrDAC(args):
 
             # Add point to calibration curve
             dict_ScurveMeanVsThrDac[vfat].SetPoint(
-                    idx,
+                    dict_ScurveMeanVsThrDac[vfat].GetN(),
                     infoTuple[2],
                     dict_funcScurveMean[infoTuple[2]][vfat].GetParameter("Mean"))
             dict_ScurveMeanVsThrDac[vfat].SetPointError(
-                    idx,
+                    dict_ScurveMeanVsThrDac[vfat].GetN()-1,
                     0,
                     dict_funcScurveMean[infoTuple[2]][vfat].GetParameter("Sigma"))
 
@@ -801,11 +804,11 @@ def calibrateThrDAC(args):
 
             # Add point to calibration curve
             dict_ScurveSigmaVsThrDac[vfat].SetPoint(
-                    idx,
+                    dict_ScurveSigmaVsThrDac[vfat].GetN(),
                     infoTuple[2],
                     dict_funcScurveSigma[infoTuple[2]][vfat].GetParameter("Mean"))
             dict_ScurveSigmaVsThrDac[vfat].SetPointError(
-                    idx,
+                    dict_ScurveSigmaVsThrDac[vfat].GetN()-1,
                     0,
                     dict_funcScurveSigma[infoTuple[2]][vfat].GetParameter("Sigma"))
 
@@ -884,10 +887,12 @@ def calibrateThrDAC(args):
         RawDataDirMean = RawDataDir.mkdir("ScurveMean")
         RawDataDirSigma = RawDataDir.mkdir("ScurveSigma")
         for idx,infoTuple in enumerate(listChamberAndScanDate):
-            RawDataDirMean.cd()
-            dict_gScurveMean[infoTuple[2]][vfat].Write()
-            RawDataDirSigma.cd()
-            dict_gScurveSigma[infoTuple[2]][vfat].Write()
+            if vfat in dict_gScurveMean[infoTuple[2]]:
+                RawDataDirMean.cd()
+                dict_gScurveMean[infoTuple[2]][vfat].Write()
+            if vfat in dict_gScurveSigma[infoTuple[2]]:    
+                RawDataDirSigma.cd()
+                dict_gScurveSigma[infoTuple[2]][vfat].Write()
         thisDirectory.cd()
 
         # Mean by CFG_THR_*_DAC
