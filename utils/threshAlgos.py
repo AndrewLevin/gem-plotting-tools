@@ -619,11 +619,12 @@ def calibrateThrDAC(args):
         list_bNames = ['noise', 'threshold', 'vfatN', 'vthr', 'ped_eff']
         scurveFitData = rp.tree2array(tree=scanFile.scurveFitTree, branches=list_bNames)
 
-        #remove channels that are masked and those for which the noise or the threshold equal the initial value
-        #also, following what is done in the scurve analysis script, we remove scurve fits in which either of these parameters are 0
+        #remove channels that fail quality cuts
         scurveFitMask1 = np.logical_or(scurveFitData['noise'] < args.deadChanCutLow,scurveFitData['noise'] > args.deadChanCutHigh)
         scurveFitMask2 = scurveFitData['noise'] < args.highNoiseCut
         scurveFitMask3 = scurveFitData['ped_eff'] < args.maxEffPedPercent
+        #following what is done in the scurve analysis script, 
+        #we also remove scurve fits in which the noise or the threshold are equal to their initial values
         scurveFitMask4 = np.logical_and(scurveFitData['noise'] != 0,scurveFitData['threshold'] != 0)
 
         for vfat in range(-1,24):
