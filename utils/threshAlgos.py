@@ -1077,8 +1077,11 @@ def calibrateThrDAC(args):
         for infoTuple in listChamberAndScanDate:
             if vfat not in dict_nBadChannels or infoTuple[2] not in dict_nBadChannels[vfat]:
                 continue
-            print '| %i | %i | %i | %i | %i | %i |'%(
-                vfat,
+            vfatnOrAll = str(vfat)
+            if vfatnOrAll == "-1":
+                vfatnOrAll = "All"
+            print '| %s | %i | %i | %i | %i | %i |'%(
+                vfatnOrAll,
                 infoTuple[2],
                 dict_nBadChannels[vfat][infoTuple[2]]["DeadChannel"],
                 dict_nBadChannels[vfat][infoTuple[2]]["HighNoise"],
