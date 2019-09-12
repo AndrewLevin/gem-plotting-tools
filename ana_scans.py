@@ -114,18 +114,25 @@ def anaSBITThresh(args):
 
         dict_dacValsBelowCutOff = anaResults[1]
 
+        import numpy as np
+        import root_numpy as rp
+        if "detName" in sbitThreshFile.rateTree.GetListOfBranches():
+            detName = rp.tree2array(sbitThreshFile.rateTree, branches = [ 'detName' ] )[0][0][0]
+        else:
+            detName = chamber_config[ohKey]
+        
         for ohKey,innerDictByVFATKey in dict_dacValsBelowCutOff["THR_ARM_DAC"].iteritems():
             if args.scandate == 'noscandate':
-                vfatConfg = open("{0}/{1}/vfatConfig.txt".format(elogPath,chamber_config[ohKey]),'w')
-                printGreen("Output Data for {0} can be found in:\n\t{1}/{0}\n".format(chamber_config[ohKey],elogPath))
+                vfatConfg = open("{0}/{1}/vfatConfig.txt".format(elogPath,detName),'w')
+                printGreen("Output Data for {0} can be found in:\n\t{1}/{0}\n".format(detName,elogPath))
             else:
                 if args.perchannel:
-                    strDirName = getDirByAnaType("sbitRatech", chamber_config[ohKey])
+                    strDirName = getDirByAnaType("sbitRatech", detName)
                 else:
-                    strDirName = getDirByAnaType("sbitRateor", chamber_config[ohKey])
+                    strDirName = getDirByAnaType("sbitRateor", detName)
                     pass
                 vfatConfg = open("{0}/{1}/vfatConfig.txt".format(strDirName,args.scandate),'w')
-                printGreen("Output Data for {0} can be found in:\n\t{1}/{2}\n".format(chamber_config[ohKey],strDirName,args.scandate))
+                printGreen("Output Data for {0} can be found in:\n\t{1}/{2}\n".format(detName,strDirName,args.scandate))
                 pass
 
             vfatConfg.write("vfatN/I:vt1/I:trimRange/I\n")
