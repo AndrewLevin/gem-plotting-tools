@@ -88,7 +88,7 @@ if __name__ == '__main__':
     from gempython.gemplotting.utils.threshAlgos import sbitRateAnalysis
     sbitRateAnalysis(
         chamber_config = chamber_config, 
-    rateTree = sbitThreshFile.rateTree,
+        rateTree = sbitThreshFile.rateTree,
         cutOffRate = args.maxNoiseRate,
         debug = args.debug,
         outfilename = args.outfilename,
