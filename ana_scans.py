@@ -105,43 +105,12 @@ def anaSBITThresh(args):
         if args.scandate is None:
             args.scandate = getScandateFromFilename(fileTuple[0])
 
-        anaResults = sbitRateAnalysis(
-                chamber_config = chamber_config,
-                rateTree = sbitThreshFile.rateTree,
-                cutOffRate = args.maxNoiseRate,
-                debug = args.debug,
-                scandate = args.scandate)
-
-        dict_dacValsBelowCutOff = anaResults[1]
-
-        import numpy as np
-        import root_numpy as rp
-        if "detName" in sbitThreshFile.rateTree.GetListOfBranches():
-            detName = rp.tree2array(sbitThreshFile.rateTree, branches = [ 'detName' ] )[0][0][0]
-        else:
-            detName = chamber_config[ohKey]
-        
-        for ohKey,innerDictByVFATKey in dict_dacValsBelowCutOff["THR_ARM_DAC"].iteritems():
-            if args.scandate == 'noscandate':
-                vfatConfg = open("{0}/{1}/vfatConfig.txt".format(elogPath,detName),'w')
-                printGreen("Output Data for {0} can be found in:\n\t{1}/{0}\n".format(detName,elogPath))
-            else:
-                if args.perchannel:
-                    strDirName = getDirByAnaType("sbitRatech", detName)
-                else:
-                    strDirName = getDirByAnaType("sbitRateor", detName)
-                    pass
-                vfatConfg = open("{0}/{1}/vfatConfig.txt".format(strDirName,args.scandate),'w')
-                printGreen("Output Data for {0} can be found in:\n\t{1}/{2}\n".format(detName,strDirName,args.scandate))
-                pass
-
-            vfatConfg.write("vfatN/I:vt1/I:trimRange/I\n")
-            for vfat,armDACVal in innerDictByVFATKey.iteritems():
-                vfatConfg.write('%i\t%i\t%i\n'%(vfat, armDACVal,0))
-                pass
-            vfatConfg.close()
-            pass
-        pass
+        sbitRateAnalysis(
+            chamber_config = chamber_config,
+            rateTree = sbitThreshFile.rateTree,
+            cutOffRate = args.maxNoiseRate,
+            debug = args.debug,
+            scandate = args.scandate)
 
     printGreen("Analysis Completed Successfully")
     return

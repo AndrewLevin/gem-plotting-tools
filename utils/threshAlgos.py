@@ -1238,6 +1238,13 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
     list_bNames.remove('vfatN')
     crateMap = np.unique(rp.tree2array(tree=rateTree,branches=list_bNames))
 
+    #map to go from the ohKey to the detector serial number
+    detNamesMap = {}
+    
+    if hasDetNameBranch:
+        for entry in crateMap:
+            detNamesMap[(entry['shelf'],entry['slot'],entry['link'])] = entry['detName'][0]
+    
     # get nonzero VFATs
     dict_nonzeroVFATs = {}
     for entry in crateMap:
@@ -1490,4 +1497,28 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
         outputFiles[ohKey].Close()
         pass
 
-    return (perchannel, dict_dacValsBelowCutOff)
+    for ohKey,innerDictByVFATKey in dict_dacValsBelowCutOff["THR_ARM_DAC"].iteritems():
+        if hasDetNameBranch:
+            detName = detNamesMap[ohKey]
+        else:
+            detName = chamber_config[ohKey]                            
+
+        from gempython.utils.gemlogger import printGreen    
+            
+        if scandate == 'noscandate':
+            vfatConfg = open("{0}/{1}/vfatConfig.txt".format(elogPath,detName),'w')
+            printGreen("Output Data for {0} can be found in:\n\t{1}/{0}\n".format(detName,elogPath))
+        else:    
+            if perchannel:
+                strDirName = getDirByAnaType("sbitRatech", detName)
+            else:
+                strDirName = getDirByAnaType("sbitRateor", detName)
+            vfatConfg = open("{0}/{1}/vfatConfig.txt".format(strDirName,scandate),'w')
+            printGreen("Output Data for {0} can be found in:\n\t{1}/{2}\n".format(detName,strDirName,scandate))
+            
+        vfatConfg.write("vfatN/I:vt1/I:trimRange/I\n")
+        for vfat,armDACVal in innerDictByVFATKey.iteritems():
+            vfatConfg.write('%i\t%i\t%i\n'%(vfat, armDACVal,0))
+        vfatConfg.close()    
+        
+    return 
