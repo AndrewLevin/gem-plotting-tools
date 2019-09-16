@@ -436,7 +436,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
                     if vfat not in dict_nonzeroVFATs[ohKey]:
                         continue
 
-                    print("| {1} | {2} | {3} | {4} | {5} | {6} |".format(
+                    print("| {0} | {1} | {2} | {3} | {4} | {5} | {6} |".format(
                         detName,
                         ohKey[0],
                         ohKey[1],
