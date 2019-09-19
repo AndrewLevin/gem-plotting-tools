@@ -1211,13 +1211,15 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
     import numpy as np
 
     #for backwards compatibility, handle input trees that do not have a detName branch by finding the detName using the chamber_config
-    hasDetNameBranch = False
-    if 'detName' in rateTree.GetListOfBranches():
-        hasDetNameBranch = True
-
     list_bNames = ['dacValX','link','nameX','rate','shelf','slot','vfatCH','vfatN','detName']
-    if not hasDetNameBranch:
+    if not 'detName' in rateTree.GetListOfBranches():
         list_bNames.remove('detName')
+
+    def getDetName(entry):
+        if "detName" in np.dtype(entry).names:
+            return entry['detName'][0]
+        else:
+            return chamber_config[(entry['shelf'],entry['slot'],entry['link'])]
         
     vfatArray = rp.tree2array(tree=rateTree,branches=list_bNames)
     dacNameArray = np.unique(vfatArray['nameX'])
@@ -1241,7 +1243,7 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
     #map to go from the ohKey to the detector serial number
     detNamesMap = {}
     
-    if hasDetNameBranch:
+    if "detName" in crateMap.dtype.names:
         for entry in crateMap:
             detNamesMap[(entry['shelf'],entry['slot'],entry['link'])] = entry['detName'][0]
     
@@ -1262,10 +1264,7 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
     from gempython.utils.wrappers import runCommand
     from gempython.gemplotting.utils.anautilities import getDirByAnaType
     for entry in crateMap:
-        if hasDetNameBranch:
-            detName = entry['detName'][0]
-        else:
-            detName = chamber_config[(entry['shelf'],entry['slot'],entry['link'])]            
+        detName = getDetName(entry)
         if scandate == 'noscandate':
             runCommand(["mkdir", "-p", "{0}/{1}".format(elogPath,detName)])
             runCommand(["chmod", "g+rw", "{0}/{1}".format(elogPath,detName)])
@@ -1318,10 +1317,7 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
     # create output TFiles
     outputFiles = {}
     for entry in crateMap:
-        if hasDetNameBranch:
-            detName = entry['detName'][0]
-        else:
-            detName = chamber_config[(entry['shelf'],entry['slot'],entry['link'])]                    
+        detName = getDetName(entry)
         if scandate == 'noscandate':
             outputFiles[ohKey] = r.TFile(elogPath+"/"+detName+"/"+outfilename,'recreate')
         else:
@@ -1388,10 +1384,7 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
 
     for entry in crateMap:
         ohKey = (entry['shelf'],entry['slot'],entry['link'])
-        if hasDetNameBranch:
-            detName = entry['detName'][0]
-        else:
-            detName = chamber_config[ohKey]
+        detName = getDetName(entry)
         # clear the inflection point table for each new link
         inflectTable = []
         # Per VFAT Poosition
@@ -1498,7 +1491,7 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
         pass
 
     for ohKey,innerDictByVFATKey in dict_dacValsBelowCutOff["THR_ARM_DAC"].iteritems():
-        if hasDetNameBranch:
+        if ohKey in detNamesMap:
             detName = detNamesMap[ohKey]
         else:
             detName = chamber_config[ohKey]                            

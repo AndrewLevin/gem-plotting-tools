@@ -74,15 +74,18 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
     import root_numpy as rp
     import numpy as np
 
-    #for backwards compatibility, handle input trees that do not have a detName branch by finding the detName using the chamber_config
-    hasDetNameBranch = False
-    if 'detName' in dacScanTree.GetListOfBranches():
-        hasDetNameBranch = True
-
     list_bNames = ['dacValY','link','nameX','shelf','slot','vfatID','vfatN','detName']
-    if not hasDetNameBranch:
+
+    #for backwards compatibility, handle input trees that do not have a detName branch by finding the detName using the chamber_config
+    if not 'detName' in dacScanTree.GetListOfBranches():    
         list_bNames.remove('detName')
-    
+
+    def getDetName(entry):
+        if "detName" in np.dtype(entry).names:
+            return entry['detName'][0]
+	else:
+            return chamber_config[(entry['shelf'],entry['slot'],entry['link'])]
+
     vfatArray = rp.tree2array(tree=dacScanTree,branches=list_bNames)
     dacNameArray = np.unique(vfatArray['nameX'])
 
@@ -111,10 +114,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
     
     from gempython.utils.wrappers import runCommand
     for entry in crateMap:
-        if hasDetNameBranch:
-            detName = entry['detName'][0]
-        else:
-            detName = chamber_config[(entry['shelf'],entry['slot'],entry['link'])]
+        detName = getDetName(entry)
         if scandate == 'noscandate':
             runCommand(["mkdir", "-p", "{0}/{1}".format(elogPath,detName)])
             runCommand(["chmod", "g+rw", "{0}/{1}".format(elogPath,detName)])
@@ -188,10 +188,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
     import os
     for idx,entry in enumerate(crateMap):
         ohKey = (entry['shelf'],entry['slot'],entry['link'])
-        if hasDetNameBranch:
-            detName = entry['detName'][0]
-        else:
-            detName = chamber_config[ohKey]
+        detName = getDetName(entry)
         if ohKey not in calInfo.keys():
             calAdcCalFile = "{0}/{1}/calFile_{2}_{1}.txt".format(dataPath,detName,adcName)
             calAdcCalFileExists = os.path.isfile(calAdcCalFile)
@@ -245,10 +242,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
 
     outputFiles = {}         
     for entry in crateMap:
-        if hasDetNameBranch:
-            detName = entry['detName'][0]
-        else:
-            detName = chamber_config[(entry['shelf'],entry['slot'],entry['link'])]
+        detName = getDetName(entry)
         if scandate == 'noscandate':
             outputFiles[ohKey] = r.TFile(elogPath+"/"+detName+"/"+args.outfilename,'recreate')
         else:    
@@ -330,10 +324,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
 
         for entry in crateMap:
             ohKey = (entry['shelf'],entry['slot'],entry['link'])
-            if hasDetNameBranch:
-                detName = entry['detName'][0]
-            else:
-                detName = entry[ohKey]            
+            getDame = getDetName(entry)
             graph_dacVals[dacName][ohKey] = r.TGraph()
             graph_dacVals[dacName][ohKey].SetMinimum(0)
             graph_dacVals[dacName][ohKey].GetXaxis().SetTitle("VFATN")
@@ -371,21 +362,15 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
     for idx in range(len(dacNameArray)):
         dacName = np.asscalar(dacNameArray[idx])
         for entry in crateMap:
-            if hasDetNameBranch:
-                detName = entry['detName'][0]
-            else:
-                detName = entry[(entry['shelf'],entry['slot'],entry['link'])]
+            detName = getDetName(entry)
             if scandate == 'noscandate':
                 outputTxtFiles_dacVals[dacName][ohKey] = open("{0}/{1}/NominalValues-{2}.txt".format(elogPath,detName,dacName),'w')
             else:
                 outputTxtFiles_dacVals[dacName][ohKey] = open("{0}/{1}/dacScans/{2}/NominalValues-{3}.txt".format(dataPath,detName,scandate,dacName),'w')
 
     for entry in crateMap:
-        ohKey = (entry['shelf'],entry['slot'],entry['link'])        
-        if hasDetNameBranch:
-            detName = entry['detName'][0]                
-        else:
-            detName = entry[ohKey]
+        ohKey = (entry['shelf'],entry['slot'],entry['link'])
+        detName = getDetName(entry)
         # Per VFAT Poosition
         for vfat in range(0,24):
             thisVFATDir = outputFiles[ohKey].mkdir("VFAT{0}".format(vfat))
@@ -425,10 +410,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
         print("| :-----: | :---: | :--: | :-: | :---: | :-----: | :---: |")
         for entry in crateMap:
             ohKey = (entry['shelf'],entry['slot'],entry['link'])
-            if hasDetNameBranch:
-                detName = entry['detName'][0]
-            else:
-                detName = chamber_config[ohKey]
+            detName = getDetName(entry)
             for idx in range(len(dacNameArray)):
                 dacName = np.asscalar(dacNameArray[idx])
             
